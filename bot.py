@@ -10,75 +10,75 @@ bot = telebot.TeleBot(BOT_TOKEN)
 db = Database()
 matcher = MatchingAlgorithm()
 
-# Õðàíèëèùå âðåìåííûõ äàííûõ ïîëüçîâàòåëåé
+# Хранилище временных данных пользователей
 user_data = {}
 
-# ============= ÊËÀÂÈÀÒÓÐÛ =============
+# ============= КЛАВИАТУРЫ =============
 def get_main_keyboard(user_type=None):
     keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
     
     if user_type == 'prorab':
-        keyboard.add(types.KeyboardButton('?? Ñîçäàòü çàÿâêó (èùó çàêàç)'))
-        keyboard.add(types.KeyboardButton('?? Íàéòè çàêàçû'))
-        keyboard.add(types.KeyboardButton('?? Ìîè çàÿâêè'))
-        keyboard.add(types.KeyboardButton('?? Ïðîôèëü'))
+        keyboard.add(types.KeyboardButton('?? Создать заявку (ищу заказ)'))
+        keyboard.add(types.KeyboardButton('?? Найти заказы'))
+        keyboard.add(types.KeyboardButton('?? Мои заявки'))
+        keyboard.add(types.KeyboardButton('?? Профиль'))
     elif user_type == 'owner':
-        keyboard.add(types.KeyboardButton('?? Ñîçäàòü çàÿâêó (èùó áðèãàäó)'))
-        keyboard.add(types.KeyboardButton('?? Íàéòè áðèãàäû'))
-        keyboard.add(types.KeyboardButton('?? Ìîè çàÿâêè'))
-        keyboard.add(types.KeyboardButton('?? Ïðîôèëü'))
+        keyboard.add(types.KeyboardButton('?? Создать заявку (ищу бригаду)'))
+        keyboard.add(types.KeyboardButton('?? Найти бригады'))
+        keyboard.add(types.KeyboardButton('?? Мои заявки'))
+        keyboard.add(types.KeyboardButton('?? Профиль'))
     else:
-        keyboard.add(types.KeyboardButton('?? Ðåãèñòðàöèÿ'))
-        keyboard.add(types.KeyboardButton('?? Î áîòå'))
+        keyboard.add(types.KeyboardButton('?? Регистрация'))
+        keyboard.add(types.KeyboardButton('?? О боте'))
     
     return keyboard
 
 def get_cancel_keyboard():
     keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    keyboard.add(types.KeyboardButton('? Îòìåíèòü'))
+    keyboard.add(types.KeyboardButton('? Отменить'))
     return keyboard
 
-# ============= ÎÁÐÀÁÎÒ×ÈÊÈ ÊÎÌÀÍÄ =============
+# ============= ОБРАБОТЧИКИ КОМАНД =============
 @bot.message_handler(commands=['start'])
 def start(message):
     user_id = message.from_user.id
     
-    # Ïðîâåðÿåì, çàðåãèñòðèðîâàí ëè ïîëüçîâàòåëü
+    # Проверяем, зарегистрирован ли пользователь
     user_requests = db.get_user_requests(user_id)
     if user_requests:
-        # Ïîëó÷àåì òèï ïîëüçîâàòåëÿ èç ïîñëåäíåé çàÿâêè
+        # Получаем тип пользователя из последней заявки
         last_request = user_requests[0]
         user_type = last_request[2]
         bot.send_message(
             user_id,
-            f"?? Ñ âîçâðàùåíèåì, {message.from_user.first_name}!",
+            f"?? С возвращением, {message.from_user.first_name}!",
             reply_markup=get_main_keyboard(user_type)
         )
     else:
         bot.send_message(
             user_id,
-            "?? Äîáðî ïîæàëîâàòü â ñòðîèòåëüíûé áîò!\n\n"
-            "Çäåñü âû ìîæåòå íàéòè ïðîôåññèîíàëüíîãî ïðîðàáà "
-            "èëè çàêàç÷èêà äëÿ ðåìîíòà è ñòðîèòåëüñòâà.\n\n"
-            "Íàø àëãîðèòì ïîäáåðåò íàèáîëåå ïîäõîäÿùèå âàðèàíòû "
-            "íà îñíîâå âàøèõ êðèòåðèåâ.",
+            "?? Добро пожаловать в строительный бот!\n\n"
+            "Здесь вы можете найти профессионального прораба "
+            "или заказчика для ремонта и строительства.\n\n"
+            "Наш алгоритм подберет наиболее подходящие варианты "
+            "на основе ваших критериев.",
             reply_markup=get_main_keyboard()
         )
 
-@bot.message_handler(func=lambda message: message.text == '?? Ðåãèñòðàöèÿ')
+@bot.message_handler(func=lambda message: message.text == '?? Регистрация')
 def register_start(message):
     user_id = message.from_user.id
     user_data[user_id] = {'step': 'choose_type'}
     
     keyboard = types.InlineKeyboardMarkup(row_width=2)
     keyboard.add(
-        types.InlineKeyboardButton("?? Ïðîðàá", callback_data="type_prorab"),
-        types.InlineKeyboardButton("?? Ñîáñòâåííèê", callback_data="type_owner")
+        types.InlineKeyboardButton("?? Прораб", callback_data="type_prorab"),
+        types.InlineKeyboardButton("?? Собственник", callback_data="type_owner")
     )
     
     bot.send_message(
         user_id,
-        "?? Âûáåðèòå âàøó ðîëü:",
+        "?? Выберите вашу роль:",
         reply_markup=keyboard
     )
 
@@ -87,7 +87,7 @@ def process_user_type(call):
     user_id = call.from_user.id
     user_type = call.data.replace('type_', '')
     
-    # Ñîõðàíÿåì ïîëüçîâàòåëÿ â ÁÄ
+    # Сохраняем пользователя в БД
     db.add_user(
         user_id=user_id,
         username=call.from_user.username,
@@ -95,30 +95,30 @@ def process_user_type(call):
         user_type=user_type
     )
     
-    bot.answer_callback_query(call.id, "Ðåãèñòðàöèÿ çàâåðøåíà!")
+    bot.answer_callback_query(call.id, "Регистрация завершена!")
     bot.edit_message_text(
-        f"? Âû çàðåãèñòðèðîâàíû êàê: {USER_TYPES[user_type]}",
+        f"? Вы зарегистрированы как: {USER_TYPES[user_type]}",
         user_id,
         call.message.message_id
     )
     
     bot.send_message(
         user_id,
-        "Òåïåðü âû ìîæåòå ñîçäàâàòü çàÿâêè è èñêàòü ïàðòíåðîâ!",
+        "Теперь вы можете создавать заявки и искать партнеров!",
         reply_markup=get_main_keyboard(user_type)
     )
 
-# ============= ÑÎÇÄÀÍÈÅ ÇÀßÂÊÈ =============
+# ============= СОЗДАНИЕ ЗАЯВКИ =============
 @bot.message_handler(func=lambda message: message.text in [
-    '?? Ñîçäàòü çàÿâêó (èùó çàêàç)',
-    '?? Ñîçäàòü çàÿâêó (èùó áðèãàäó)'
+    '?? Создать заявку (ищу заказ)',
+    '?? Создать заявку (ищу бригаду)'
 ])
 def create_request_start(message):
     user_id = message.from_user.id
     user_requests = db.get_user_requests(user_id)
     
     if not user_requests:
-        bot.send_message(user_id, "Ñíà÷àëà íóæíî çàðåãèñòðèðîâàòüñÿ!")
+        bot.send_message(user_id, "Сначала нужно зарегистрироваться!")
         return
     
     last_request = user_requests[0]
@@ -129,14 +129,14 @@ def create_request_start(message):
         'user_type': user_type
     }
     
-    # Ñîçäàåì êëàâèàòóðó ñ ãîðîäàìè
+    # Создаем клавиатуру с городами
     keyboard = types.InlineKeyboardMarkup(row_width=2)
     for city in CITIES:
         keyboard.add(types.InlineKeyboardButton(city, callback_data=f"city_{city}"))
     
     bot.send_message(
         user_id,
-        "?? Â êàêîì ãîðîäå íàõîäèòñÿ îáúåêò?",
+        "?? В каком городе находится объект?",
         reply_markup=keyboard
     )
 
@@ -153,7 +153,7 @@ def process_city(call):
         keyboard.add(types.InlineKeyboardButton(value, callback_data=f"obj_{key}"))
     
     bot.edit_message_text(
-        f"? Ãîðîä: {city}\n\n?? Âûáåðèòå òèï îáúåêòà:",
+        f"? Город: {city}\n\n?? Выберите тип объекта:",
         user_id,
         call.message.message_id,
         reply_markup=keyboard
@@ -172,8 +172,8 @@ def process_object_type(call):
         keyboard.add(types.InlineKeyboardButton(value, callback_data=f"work_{key}"))
     
     bot.edit_message_text(
-        f"? Òèï îáúåêòà: {OBJECT_TYPES[object_type]}\n\n"
-        "?? Âûáåðèòå âèä ðàáîò:",
+        f"? Тип объекта: {OBJECT_TYPES[object_type]}\n\n"
+        "?? Выберите вид работ:",
         user_id,
         call.message.message_id,
         reply_markup=keyboard
@@ -192,8 +192,8 @@ def process_work_type(call):
         keyboard.add(types.InlineKeyboardButton(value, callback_data=f"budget_{key}"))
     
     bot.edit_message_text(
-        f"? Âèä ðàáîò: {WORK_TYPES[work_type]}\n\n"
-        "?? Âûáåðèòå áþäæåò:",
+        f"? Вид работ: {WORK_TYPES[work_type]}\n\n"
+        "?? Выберите бюджет:",
         user_id,
         call.message.message_id,
         reply_markup=keyboard
@@ -208,9 +208,9 @@ def process_budget(call):
     user_data[user_id]['step'] = 'square'
     
     bot.edit_message_text(
-        f"? Áþäæåò: {BUDGET_RANGES[budget]}\n\n"
-        "?? Ââåäèòå ïëîùàäü ïîìåùåíèÿ (â ì?):\n"
-        "(èëè îòïðàâüòå '0', åñëè íå çíàåòå)",
+        f"? Бюджет: {BUDGET_RANGES[budget]}\n\n"
+        "?? Введите площадь помещения (в м?):\n"
+        "(или отправьте '0', если не знаете)",
         user_id,
         call.message.message_id
     )
@@ -227,9 +227,9 @@ def process_square(message):
         
         bot.send_message(
             user_id,
-            "?? Äîáàâüòå îïèñàíèå âàøåãî ïðîåêòà.\n"
-            "Óêàæèòå îñîáåííîñòè, ñðîêè, ïîæåëàíèÿ:\n"
-            "(èëè îòïðàâüòå '-', ÷òîáû ïðîïóñòèòü)",
+            "?? Добавьте описание вашего проекта.\n"
+            "Укажите особенности, сроки, пожелания:\n"
+            "(или отправьте '-', чтобы пропустить)",
             reply_markup=get_cancel_keyboard()
         )
         
@@ -237,21 +237,21 @@ def process_square(message):
     except ValueError:
         bot.send_message(
             user_id,
-            "? Ïîæàëóéñòà, ââåäèòå ÷èñëî.\n"
-            "?? Ïëîùàäü ïîìåùåíèÿ (â ì?):"
+            "? Пожалуйста, введите число.\n"
+            "?? Площадь помещения (в м?):"
         )
         bot.register_next_step_handler(message, process_square)
 
 def process_description(message):
     user_id = message.from_user.id
     
-    if message.text == '? Îòìåíèòü':
+    if message.text == '? Отменить':
         cancel_creation(message)
         return
     
     description = message.text if message.text != '-' else ""
     
-    # Ñîõðàíÿåì çàÿâêó â ÁÄ
+    # Сохраняем заявку в БД
     request_id = db.add_request(
         user_id=user_id,
         user_type=user_data[user_id]['user_type'],
@@ -265,12 +265,12 @@ def process_description(message):
     
     bot.send_message(
         user_id,
-        "? Çàÿâêà óñïåøíî ñîçäàíà!\n"
-        "?? Íà÷èíàåì ïîèñê ïîäõîäÿùèõ âàðèàíòîâ...",
+        "? Заявка успешно создана!\n"
+        "?? Начинаем поиск подходящих вариантов...",
         reply_markup=get_main_keyboard(user_data[user_id]['user_type'])
     )
     
-    # Çàïóñêàåì ïîèñê ñîâïàäåíèé
+    # Запускаем поиск совпадений
     find_matches(user_id, request_id)
     
     del user_data[user_id]
@@ -282,93 +282,93 @@ def cancel_creation(message):
     
     bot.send_message(
         user_id,
-        "? Ñîçäàíèå çàÿâêè îòìåíåíî",
+        "? Создание заявки отменено",
         reply_markup=get_main_keyboard(user_type)
     )
     
     if user_id in user_data:
         del user_data[user_id]
 
-# ============= ÀËÃÎÐÈÒÌ ÏÎÄÁÎÐÀ =============
+# ============= АЛГОРИТМ ПОДБОРА =============
 def find_matches(user_id, request_id):
-    """Íàõîäèò ïîäõîäÿùèå çàÿâêè äëÿ òîëüêî ÷òî ñîçäàííîé"""
+    """Находит подходящие заявки для только что созданной"""
     
-    # Ïîëó÷àåì öåëåâóþ çàÿâêó
+    # Получаем целевую заявку
     db.cursor.execute('SELECT * FROM requests WHERE request_id = ?', (request_id,))
     target_request = db.cursor.fetchone()
     
-    # Îïðåäåëÿåì, êîãî èùåì
+    # Определяем, кого ищем
     looking_for = 'owner' if target_request[2] == 'prorab' else 'prorab'
     
-    # Ïîëó÷àåì âñå àêòèâíûå çàÿâêè ïðîòèâîïîëîæíîãî òèïà
+    # Получаем все активные заявки противоположного типа
     potential_requests = db.get_active_requests(user_type=looking_for)
     
-    # Èùåì ñîâïàäåíèÿ
+    # Ищем совпадения
     matches = matcher.find_best_matches(target_request, potential_requests, limit=5)
     
-    # Ñîõðàíÿåì íàéäåííûå ñîâïàäåíèÿ
+    # Сохраняем найденные совпадения
     for request, score in matches:
         db.save_match(request_id, request[0], score)
     
-    # Îòïðàâëÿåì ðåçóëüòàò ïîëüçîâàòåëþ
+    # Отправляем результат пользователю
     if matches:
         send_matches_to_user(user_id, request_id, matches)
     else:
         bot.send_message(
             user_id,
-            "?? Ïîêà íå íàéäåíî ïîäõîäÿùèõ âàðèàíòîâ.\n"
-            "Ìû ïðîäîëæèì ïîèñê è óâåäîìèì âàñ, êîãäà ïîÿâÿòñÿ íîâûå çàÿâêè!"
+            "?? Пока не найдено подходящих вариантов.\n"
+            "Мы продолжим поиск и уведомим вас, когда появятся новые заявки!"
         )
 
 def send_matches_to_user(user_id, request_id, matches):
-    """Îòïðàâëÿåò íàéäåííûå ñîâïàäåíèÿ ïîëüçîâàòåëþ"""
+    """Отправляет найденные совпадения пользователю"""
     
-    text = f"?? Íàéäåíî {len(matches)} ïîäõîäÿùèõ âàðèàíòîâ!\n\n"
+    text = f"?? Найдено {len(matches)} подходящих вариантов!\n\n"
     
     for i, (request, score) in enumerate(matches, 1):
-        text += f"?? Âàðèàíò #{i}\n"
-        text += f"?? Ñîâïàäåíèå: {score}%\n"
+        text += f"?? Вариант #{i}\n"
+        text += f"?? Совпадение: {score}%\n"
         
         if request[2] == 'owner':
-            text += f"?? Ñîáñòâåííèê èùåò: {OBJECT_TYPES.get(request[4], 'Íå óêàçàíî')}\n"
+            text += f"?? Собственник ищет: {OBJECT_TYPES.get(request[4], 'Не указано')}\n"
         else:
-            text += f"?? Ïðîðàá: {WORK_TYPES.get(request[5], 'Íå óêàçàíî')}\n"
+            text += f"?? Прораб: {WORK_TYPES.get(request[5], 'Не указано')}\n"
         
-        text += f"?? Ãîðîä: {request[3]}\n"
-        text += f"?? Áþäæåò: {BUDGET_RANGES.get(request[6], 'Íå óêàçàíî')}\n"
+        text += f"?? Город: {request[3]}\n"
+        text += f"?? Бюджет: {BUDGET_RANGES.get(request[6], 'Не указано')}\n"
         
-        if request[7]:  # ïëîùàäü
-            text += f"?? Ïëîùàäü: {request[7]} ì?\n"
+        if request[7]:  # площадь
+            text += f"?? Площадь: {request[7]} м?\n"
         
         text += "\n"
     
-    text += "Äëÿ ïðîñìîòðà äåòàëåé èñïîëüçóéòå ðàçäåë 'Ìîè çàÿâêè'"
+    text += "Для просмотра деталей используйте раздел 'Мои заявки'"
     
     bot.send_message(user_id, text)
 
-# ============= ÏÎÈÑÊ ÇÀßÂÎÊ =============
-@bot.message_handler(func=lambda message: message.text in ['?? Íàéòè çàêàçû', '?? Íàéòè áðèãàäû'])
+# ============= ПОИСК ЗАЯВОК =============
+@bot.message_handler(func=lambda message: message.text in ['?? Найти заказы', '?? Найти бригады'])
 def search_requests(message):
     user_id = message.from_user.id
     
     user_requests = db.get_user_requests(user_id)
     if not user_requests:
-        bot.send_message(user_id, "Ñíà÷àëà ñîçäàéòå çàÿâêó!")
+        bot.send_message(user_id, "Сначала создайте заявку!")
         return
     
-    # Ïîëó÷àåì ïîñëåäíþþ àêòèâíóþ çàÿâêó ïîëüçîâàòåëÿ
+    # Получаем последнюю активную заявку пользователя
     active_requests = [r for r in user_requests if r[9] == 'active']
     
     if not active_requests:
         bot.send_message(
             user_id,
-            "Ó âàñ íåò àêòèâíûõ çàÿâîê. Ñîçäàéòå íîâóþ çàÿâêó äëÿ ïîèñêà!"
+            "У вас нет активных заявок. Создайте новую заявку для поиска!"
         )
         return
     
     last_request = active_requests[0]
     
-    # Ïîëó÷àåì ñîõðàíåííûå ñîâïàäåíèÿ
+    # Получаем сохраненные совпадения
     matches = db.get_matches_for_request(last_request[0])
     
     if matches:
@@ -376,56 +376,56 @@ def search_requests(message):
     else:
         bot.send_message(
             user_id,
-            "? Ïîêà íåò íîâûõ ñîâïàäåíèé.\n"
-            "Ìû óâåäîìèì âàñ, êîãäà ïîÿâÿòñÿ ïîäõîäÿùèå âàðèàíòû!"
+            "? Пока нет новых совпадений.\n"
+            "Мы уведомим вас, когда появятся подходящие варианты!"
         )
 
 def send_matches_from_db(user_id, matches):
-    """Îòïðàâëÿåò ïîëüçîâàòåëþ ñîâïàäåíèÿ èç áàçû äàííûõ"""
+    """Отправляет пользователю совпадения из базы данных"""
     
-    for match in matches[:3]:  # Ïîêàçûâàåì ïî 3 çà ðàç
-        match_data = match[4:]  # Äàííûå çàÿâêè
-        score = match[3]  # Ïðîöåíò ñîâïàäåíèÿ
+    for match in matches[:3]:  # Показываем по 3 за раз
+        match_data = match[4:]  # Данные заявки
+        score = match[3]  # Процент совпадения
         
-        # Ñîçäàåì êàðòî÷êó çàÿâêè
-        if match_data[2] == 'owner':  # ýòî çàÿâêà ñîáñòâåííèêà
-            text = f"?? **ÇÀÊÀÇ×ÈÊ**\n"
-            text += f"?? Ñîâïàäåíèå: {score}%\n"
-            text += f"?? Ãîðîä: {match_data[3]}\n"
-            text += f"?? Îáúåêò: {OBJECT_TYPES.get(match_data[4], 'Íå óêàçàíî')}\n"
-            text += f"?? Ðàáîòû: {WORK_TYPES.get(match_data[5], 'Íå óêàçàíî')}\n"
-            text += f"?? Áþäæåò: {BUDGET_RANGES.get(match_data[6], 'Íå óêàçàíî')}\n"
+        # Создаем карточку заявки
+        if match_data[2] == 'owner':  # это заявка собственника
+            text = f"?? **ЗАКАЗЧИК**\n"
+            text += f"?? Совпадение: {score}%\n"
+            text += f"?? Город: {match_data[3]}\n"
+            text += f"?? Объект: {OBJECT_TYPES.get(match_data[4], 'Не указано')}\n"
+            text += f"?? Работы: {WORK_TYPES.get(match_data[5], 'Не указано')}\n"
+            text += f"?? Бюджет: {BUDGET_RANGES.get(match_data[6], 'Не указано')}\n"
             
             if match_data[7]:
-                text += f"?? Ïëîùàäü: {match_data[7]} ì?\n"
+                text += f"?? Площадь: {match_data[7]} м?\n"
             
             if match_data[8]:
-                text += f"?? Îïèñàíèå: {match_data[8][:200]}...\n"
+                text += f"?? Описание: {match_data[8][:200]}...\n"
             
-        else:  # çàÿâêà ïðîðàáà
-            text = f"?? **ÏÐÎÐÀÁ**\n"
-            text += f"?? Ñîâïàäåíèå: {score}%\n"
-            text += f"?? Ãîðîä: {match_data[3]}\n"
-            text += f"?? Ñïåöèàëèçàöèÿ: {WORK_TYPES.get(match_data[5], 'Íå óêàçàíî')}\n"
-            text += f"?? Áþäæåò: {BUDGET_RANGES.get(match_data[6], 'Íå óêàçàíî')}\n"
+        else:  # заявка прораба
+            text = f"?? **ПРОРАБ**\n"
+            text += f"?? Совпадение: {score}%\n"
+            text += f"?? Город: {match_data[3]}\n"
+            text += f"?? Специализация: {WORK_TYPES.get(match_data[5], 'Не указано')}\n"
+            text += f"?? Бюджет: {BUDGET_RANGES.get(match_data[6], 'Не указано')}\n"
             
             if match_data[7]:
-                text += f"?? Ïëîùàäü: {match_data[7]} ì?\n"
+                text += f"?? Площадь: {match_data[7]} м?\n"
             
             if match_data[8]:
-                text += f"?? Îïèñàíèå: {match_data[8][:200]}...\n"
+                text += f"?? Описание: {match_data[8][:200]}...\n"
         
-        # Êíîïêè äëÿ âçàèìîäåéñòâèÿ
+        # Кнопки для взаимодействия
         keyboard = types.InlineKeyboardMarkup()
         keyboard.add(
             types.InlineKeyboardButton(
-                "?? Ïîêàçàòü êîíòàêòû",
+                "?? Показать контакты",
                 callback_data=f"show_contact_{match_data[1]}"  # user_id
             )
         )
         keyboard.add(
             types.InlineKeyboardButton(
-                "? Îòêëèêíóòüñÿ",
+                "? Откликнуться",
                 callback_data=f"respond_{match[0]}"  # match_id
             )
         )
@@ -437,14 +437,14 @@ def send_matches_from_db(user_id, matches):
 def show_contact(call):
     user_id = int(call.data.replace('show_contact_', ''))
     
-    # Ïîëó÷àåì äàííûå ïîëüçîâàòåëÿ
+    # Получаем данные пользователя
     db.cursor.execute('SELECT * FROM users WHERE user_id = ?', (user_id,))
     user = db.cursor.fetchone()
     
     if user and user[4]:  # phone
-        contact_text = f"?? Êîíòàêòíûé òåëåôîí: {user[4]}"
+        contact_text = f"?? Контактный телефон: {user[4]}"
     else:
-        contact_text = "?? Ïîëüçîâàòåëü íå óêàçàë êîíòàêòíûé òåëåôîí"
+        contact_text = "?? Пользователь не указал контактный телефон"
     
     bot.answer_callback_query(call.id)
     bot.send_message(call.from_user.id, contact_text)
@@ -453,7 +453,7 @@ def show_contact(call):
 def respond_to_match(call):
     match_id = int(call.data.replace('respond_', ''))
     
-    # Ïîëó÷àåì èíôîðìàöèþ î ñîâïàäåíèè
+    # Получаем информацию о совпадении
     db.cursor.execute('''
         SELECT m.*, r1.user_id as target_user, r2.user_id as matched_user 
         FROM matches m
@@ -465,24 +465,24 @@ def respond_to_match(call):
     match = db.cursor.fetchone()
     
     if match:
-        bot.answer_callback_query(call.id, "? Îòêëèê îòïðàâëåí!")
+        bot.answer_callback_query(call.id, "? Отклик отправлен!")
         
-        # Îòïðàâëÿåì óâåäîìëåíèå äðóãîé ñòîðîíå
+        # Отправляем уведомление другой стороне
         bot.send_message(
             match[5],  # matched_user
-            "?? Íîâûé îòêëèê íà âàøó çàÿâêó!\n"
-            "Êòî-òî çàèíòåðåñîâàëñÿ âàøèì ïðåäëîæåíèåì."
+            "?? Новый отклик на вашу заявку!\n"
+            "Кто-то заинтересовался вашим предложением."
         )
         
         bot.send_message(
             call.from_user.id,
-            "? Âàø îòêëèê îòïðàâëåí. Îæèäàéòå îòâåòà!"
+            "? Ваш отклик отправлен. Ожидайте ответа!"
         )
     else:
-        bot.answer_callback_query(call.id, "? Îøèáêà")
+        bot.answer_callback_query(call.id, "? Ошибка")
 
-# ============= ÏÐÎÔÈËÜ È ÇÀßÂÊÈ =============
-@bot.message_handler(func=lambda message: message.text == '?? Ìîè çàÿâêè')
+# ============= ПРОФИЛЬ И ЗАЯВКИ =============
+@bot.message_handler(func=lambda message: message.text == '?? Мои заявки')
 def show_my_requests(message):
     user_id = message.from_user.id
     
@@ -491,30 +491,30 @@ def show_my_requests(message):
     if not requests:
         bot.send_message(
             user_id,
-            "Ó âàñ åùå íåò çàÿâîê.\n"
-            "Ñîçäàéòå ïåðâóþ çàÿâêó ÷åðåç ãëàâíîå ìåíþ!"
+            "У вас еще нет заявок.\n"
+            "Создайте первую заявку через главное меню!"
         )
         return
     
-    text = "?? **Âàøè çàÿâêè:**\n\n"
+    text = "?? **Ваши заявки:**\n\n"
     
-    for i, req in enumerate(requests[:5], 1):  # Ïîêàçûâàåì ïîñëåäíèå 5
-        status = "?? Àêòèâíà" if req[9] == 'active' else "?? Çàêðûòà"
+    for i, req in enumerate(requests[:5], 1):  # Показываем последние 5
+        status = "?? Активна" if req[9] == 'active' else "?? Закрыта"
         
         if req[2] == 'owner':
-            text += f"{i}. {status} - Èùó áðèãàäó\n"
-            text += f"   Îáúåêò: {OBJECT_TYPES.get(req[4], 'Íå óêàçàíî')}\n"
+            text += f"{i}. {status} - Ищу бригаду\n"
+            text += f"   Объект: {OBJECT_TYPES.get(req[4], 'Не указано')}\n"
         else:
-            text += f"{i}. {status} - Èùó çàêàç\n"
-            text += f"   Ðàáîòû: {WORK_TYPES.get(req[5], 'Íå óêàçàíî')}\n"
+            text += f"{i}. {status} - Ищу заказ\n"
+            text += f"   Работы: {WORK_TYPES.get(req[5], 'Не указано')}\n"
         
-        text += f"   Ãîðîä: {req[3]}\n"
-        text += f"   Äàòà: {req[10][:10]}\n\n"
+        text += f"   Город: {req[3]}\n"
+        text += f"   Дата: {req[10][:10]}\n\n"
     
     keyboard = types.InlineKeyboardMarkup()
     keyboard.add(
         types.InlineKeyboardButton(
-            "? Çàêðûòü ïîñëåäíþþ çàÿâêó",
+            "? Закрыть последнюю заявку",
             callback_data="close_last_request"
         )
     )
@@ -530,12 +530,12 @@ def close_last_request(call):
     
     if active_requests:
         db.close_request(active_requests[0][0])
-        bot.answer_callback_query(call.id, "? Çàÿâêà çàêðûòà!")
-        bot.send_message(user_id, "? Ïîñëåäíÿÿ çàÿâêà çàêðûòà")
+        bot.answer_callback_query(call.id, "? Заявка закрыта!")
+        bot.send_message(user_id, "? Последняя заявка закрыта")
     else:
-        bot.answer_callback_query(call.id, "? Íåò àêòèâíûõ çàÿâîê")
+        bot.answer_callback_query(call.id, "? Нет активных заявок")
 
-@bot.message_handler(func=lambda message: message.text == '?? Ïðîôèëü')
+@bot.message_handler(func=lambda message: message.text == '?? Профиль')
 def show_profile(message):
     user_id = message.from_user.id
     
@@ -543,32 +543,32 @@ def show_profile(message):
     user = db.cursor.fetchone()
     
     if user:
-        text = f"?? **Âàø ïðîôèëü**\n\n"
-        text += f"Èìÿ: {user[3]}\n"
-        text += f"Username: @{user[2] if user[2] else 'íå óêàçàí'}\n"
-        text += f"Ðîëü: {USER_TYPES.get(user[4], 'Íå óêàçàíà')}\n"
-        text += f"Òåëåôîí: {user[5] if user[5] else 'íå óêàçàí'}\n"
-        text += f"Äàòà ðåãèñòðàöèè: {user[6][:10]}\n"
+        text = f"?? **Ваш профиль**\n\n"
+        text += f"Имя: {user[3]}\n"
+        text += f"Username: @{user[2] if user[2] else 'не указан'}\n"
+        text += f"Роль: {USER_TYPES.get(user[4], 'Не указана')}\n"
+        text += f"Телефон: {user[5] if user[5] else 'не указан'}\n"
+        text += f"Дата регистрации: {user[6][:10]}\n"
         
-        # Ïîëó÷àåì ñòàòèñòèêó
+        # Получаем статистику
         requests = db.get_user_requests(user_id)
         active_requests = len([r for r in requests if r[9] == 'active'])
         
-        text += f"\n?? Ñòàòèñòèêà:\n"
-        text += f"Âñåãî çàÿâîê: {len(requests)}\n"
-        text += f"Àêòèâíûõ: {active_requests}\n"
+        text += f"\n?? Статистика:\n"
+        text += f"Всего заявок: {len(requests)}\n"
+        text += f"Активных: {active_requests}\n"
         
         keyboard = types.InlineKeyboardMarkup()
         keyboard.add(
             types.InlineKeyboardButton(
-                "?? Óêàçàòü òåëåôîí",
+                "?? Указать телефон",
                 callback_data="set_phone"
             )
         )
         
         bot.send_message(user_id, text, reply_markup=keyboard, parse_mode='Markdown')
     else:
-        bot.send_message(user_id, "Ñíà÷àëà çàðåãèñòðèðóéòåñü!")
+        bot.send_message(user_id, "Сначала зарегистрируйтесь!")
 
 @bot.callback_query_handler(func=lambda call: call.data == 'set_phone')
 def set_phone_start(call):
@@ -577,7 +577,7 @@ def set_phone_start(call):
     bot.answer_callback_query(call.id)
     bot.send_message(
         user_id,
-        "?? Îòïðàâüòå âàø íîìåð òåëåôîíà äëÿ ñâÿçè:",
+        "?? Отправьте ваш номер телефона для связи:",
         reply_markup=get_cancel_keyboard()
     )
     
@@ -586,5 +586,4 @@ def set_phone_start(call):
 def save_phone(message):
     user_id = message.from_user.id
     
-
     if message.text
