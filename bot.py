@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import telebot
 from telebot import types
 from config import *
@@ -9,75 +10,75 @@ bot = telebot.TeleBot(BOT_TOKEN)
 db = Database()
 matcher = MatchingAlgorithm()
 
-# Хранилище временных данных пользователей
+# Г•Г°Г Г­ГЁГ«ГЁГ№ГҐ ГўГ°ГҐГ¬ГҐГ­Г­Г»Гµ Г¤Г Г­Г­Г»Гµ ГЇГ®Г«ГјГ§Г®ГўГ ГІГҐГ«ГҐГ©
 user_data = {}
 
-# ============= КЛАВИАТУРЫ =============
+# ============= ГЉГ‹ГЂГ‚Г€ГЂГ’Г“ГђГ› =============
 def get_main_keyboard(user_type=None):
     keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
     
     if user_type == 'prorab':
-        keyboard.add(types.KeyboardButton('?? Создать заявку (ищу заказ)'))
-        keyboard.add(types.KeyboardButton('?? Найти заказы'))
-        keyboard.add(types.KeyboardButton('?? Мои заявки'))
-        keyboard.add(types.KeyboardButton('?? Профиль'))
+        keyboard.add(types.KeyboardButton('?? Г‘Г®Г§Г¤Г ГІГј Г§Г ГїГўГЄГі (ГЁГ№Гі Г§Г ГЄГ Г§)'))
+        keyboard.add(types.KeyboardButton('?? ГЌГ Г©ГІГЁ Г§Г ГЄГ Г§Г»'))
+        keyboard.add(types.KeyboardButton('?? ГЊГ®ГЁ Г§Г ГїГўГЄГЁ'))
+        keyboard.add(types.KeyboardButton('?? ГЏГ°Г®ГґГЁГ«Гј'))
     elif user_type == 'owner':
-        keyboard.add(types.KeyboardButton('?? Создать заявку (ищу бригаду)'))
-        keyboard.add(types.KeyboardButton('?? Найти бригады'))
-        keyboard.add(types.KeyboardButton('?? Мои заявки'))
-        keyboard.add(types.KeyboardButton('?? Профиль'))
+        keyboard.add(types.KeyboardButton('?? Г‘Г®Г§Г¤Г ГІГј Г§Г ГїГўГЄГі (ГЁГ№Гі ГЎГ°ГЁГЈГ Г¤Гі)'))
+        keyboard.add(types.KeyboardButton('?? ГЌГ Г©ГІГЁ ГЎГ°ГЁГЈГ Г¤Г»'))
+        keyboard.add(types.KeyboardButton('?? ГЊГ®ГЁ Г§Г ГїГўГЄГЁ'))
+        keyboard.add(types.KeyboardButton('?? ГЏГ°Г®ГґГЁГ«Гј'))
     else:
-        keyboard.add(types.KeyboardButton('?? Регистрация'))
-        keyboard.add(types.KeyboardButton('?? О боте'))
+        keyboard.add(types.KeyboardButton('?? ГђГҐГЈГЁГ±ГІГ°Г Г¶ГЁГї'))
+        keyboard.add(types.KeyboardButton('?? ГЋ ГЎГ®ГІГҐ'))
     
     return keyboard
 
 def get_cancel_keyboard():
     keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    keyboard.add(types.KeyboardButton('? Отменить'))
+    keyboard.add(types.KeyboardButton('? ГЋГІГ¬ГҐГ­ГЁГІГј'))
     return keyboard
 
-# ============= ОБРАБОТЧИКИ КОМАНД =============
+# ============= ГЋГЃГђГЂГЃГЋГ’Г—Г€ГЉГ€ ГЉГЋГЊГЂГЌГ„ =============
 @bot.message_handler(commands=['start'])
 def start(message):
     user_id = message.from_user.id
     
-    # Проверяем, зарегистрирован ли пользователь
+    # ГЏГ°Г®ГўГҐГ°ГїГҐГ¬, Г§Г Г°ГҐГЈГЁГ±ГІГ°ГЁГ°Г®ГўГ Г­ Г«ГЁ ГЇГ®Г«ГјГ§Г®ГўГ ГІГҐГ«Гј
     user_requests = db.get_user_requests(user_id)
     if user_requests:
-        # Получаем тип пользователя из последней заявки
+        # ГЏГ®Г«ГіГ·Г ГҐГ¬ ГІГЁГЇ ГЇГ®Г«ГјГ§Г®ГўГ ГІГҐГ«Гї ГЁГ§ ГЇГ®Г±Г«ГҐГ¤Г­ГҐГ© Г§Г ГїГўГЄГЁ
         last_request = user_requests[0]
         user_type = last_request[2]
         bot.send_message(
             user_id,
-            f"?? С возвращением, {message.from_user.first_name}!",
+            f"?? Г‘ ГўГ®Г§ГўГ°Г Г№ГҐГ­ГЁГҐГ¬, {message.from_user.first_name}!",
             reply_markup=get_main_keyboard(user_type)
         )
     else:
         bot.send_message(
             user_id,
-            "?? Добро пожаловать в строительный бот!\n\n"
-            "Здесь вы можете найти профессионального прораба "
-            "или заказчика для ремонта и строительства.\n\n"
-            "Наш алгоритм подберет наиболее подходящие варианты "
-            "на основе ваших критериев.",
+            "?? Г„Г®ГЎГ°Г® ГЇГ®Г¦Г Г«Г®ГўГ ГІГј Гў Г±ГІГ°Г®ГЁГІГҐГ«ГјГ­Г»Г© ГЎГ®ГІ!\n\n"
+            "Г‡Г¤ГҐГ±Гј ГўГ» Г¬Г®Г¦ГҐГІГҐ Г­Г Г©ГІГЁ ГЇГ°Г®ГґГҐГ±Г±ГЁГ®Г­Г Г«ГјГ­Г®ГЈГ® ГЇГ°Г®Г°Г ГЎГ  "
+            "ГЁГ«ГЁ Г§Г ГЄГ Г§Г·ГЁГЄГ  Г¤Г«Гї Г°ГҐГ¬Г®Г­ГІГ  ГЁ Г±ГІГ°Г®ГЁГІГҐГ«ГјГ±ГІГўГ .\n\n"
+            "ГЌГ Гё Г Г«ГЈГ®Г°ГЁГІГ¬ ГЇГ®Г¤ГЎГҐГ°ГҐГІ Г­Г ГЁГЎГ®Г«ГҐГҐ ГЇГ®Г¤ГµГ®Г¤ГїГ№ГЁГҐ ГўГ Г°ГЁГ Г­ГІГ» "
+            "Г­Г  Г®Г±Г­Г®ГўГҐ ГўГ ГёГЁГµ ГЄГ°ГЁГІГҐГ°ГЁГҐГў.",
             reply_markup=get_main_keyboard()
         )
 
-@bot.message_handler(func=lambda message: message.text == '?? Регистрация')
+@bot.message_handler(func=lambda message: message.text == '?? ГђГҐГЈГЁГ±ГІГ°Г Г¶ГЁГї')
 def register_start(message):
     user_id = message.from_user.id
     user_data[user_id] = {'step': 'choose_type'}
     
     keyboard = types.InlineKeyboardMarkup(row_width=2)
     keyboard.add(
-        types.InlineKeyboardButton("?? Прораб", callback_data="type_prorab"),
-        types.InlineKeyboardButton("?? Собственник", callback_data="type_owner")
+        types.InlineKeyboardButton("?? ГЏГ°Г®Г°Г ГЎ", callback_data="type_prorab"),
+        types.InlineKeyboardButton("?? Г‘Г®ГЎГ±ГІГўГҐГ­Г­ГЁГЄ", callback_data="type_owner")
     )
     
     bot.send_message(
         user_id,
-        "?? Выберите вашу роль:",
+        "?? Г‚Г»ГЎГҐГ°ГЁГІГҐ ГўГ ГёГі Г°Г®Г«Гј:",
         reply_markup=keyboard
     )
 
@@ -86,7 +87,7 @@ def process_user_type(call):
     user_id = call.from_user.id
     user_type = call.data.replace('type_', '')
     
-    # Сохраняем пользователя в БД
+    # Г‘Г®ГµГ°Г Г­ГїГҐГ¬ ГЇГ®Г«ГјГ§Г®ГўГ ГІГҐГ«Гї Гў ГЃГ„
     db.add_user(
         user_id=user_id,
         username=call.from_user.username,
@@ -94,30 +95,30 @@ def process_user_type(call):
         user_type=user_type
     )
     
-    bot.answer_callback_query(call.id, "Регистрация завершена!")
+    bot.answer_callback_query(call.id, "ГђГҐГЈГЁГ±ГІГ°Г Г¶ГЁГї Г§Г ГўГҐГ°ГёГҐГ­Г !")
     bot.edit_message_text(
-        f"? Вы зарегистрированы как: {USER_TYPES[user_type]}",
+        f"? Г‚Г» Г§Г Г°ГҐГЈГЁГ±ГІГ°ГЁГ°Г®ГўГ Г­Г» ГЄГ ГЄ: {USER_TYPES[user_type]}",
         user_id,
         call.message.message_id
     )
     
     bot.send_message(
         user_id,
-        "Теперь вы можете создавать заявки и искать партнеров!",
+        "Г’ГҐГЇГҐГ°Гј ГўГ» Г¬Г®Г¦ГҐГІГҐ Г±Г®Г§Г¤Г ГўГ ГІГј Г§Г ГїГўГЄГЁ ГЁ ГЁГ±ГЄГ ГІГј ГЇГ Г°ГІГ­ГҐГ°Г®Гў!",
         reply_markup=get_main_keyboard(user_type)
     )
 
-# ============= СОЗДАНИЕ ЗАЯВКИ =============
+# ============= Г‘ГЋГ‡Г„ГЂГЌГ€Г… Г‡ГЂГџГ‚ГЉГ€ =============
 @bot.message_handler(func=lambda message: message.text in [
-    '?? Создать заявку (ищу заказ)',
-    '?? Создать заявку (ищу бригаду)'
+    '?? Г‘Г®Г§Г¤Г ГІГј Г§Г ГїГўГЄГі (ГЁГ№Гі Г§Г ГЄГ Г§)',
+    '?? Г‘Г®Г§Г¤Г ГІГј Г§Г ГїГўГЄГі (ГЁГ№Гі ГЎГ°ГЁГЈГ Г¤Гі)'
 ])
 def create_request_start(message):
     user_id = message.from_user.id
     user_requests = db.get_user_requests(user_id)
     
     if not user_requests:
-        bot.send_message(user_id, "Сначала нужно зарегистрироваться!")
+        bot.send_message(user_id, "Г‘Г­Г Г·Г Г«Г  Г­ГіГ¦Г­Г® Г§Г Г°ГҐГЈГЁГ±ГІГ°ГЁГ°Г®ГўГ ГІГјГ±Гї!")
         return
     
     last_request = user_requests[0]
@@ -128,14 +129,14 @@ def create_request_start(message):
         'user_type': user_type
     }
     
-    # Создаем клавиатуру с городами
+    # Г‘Г®Г§Г¤Г ГҐГ¬ ГЄГ«Г ГўГЁГ ГІГіГ°Гі Г± ГЈГ®Г°Г®Г¤Г Г¬ГЁ
     keyboard = types.InlineKeyboardMarkup(row_width=2)
     for city in CITIES:
         keyboard.add(types.InlineKeyboardButton(city, callback_data=f"city_{city}"))
     
     bot.send_message(
         user_id,
-        "?? В каком городе находится объект?",
+        "?? Г‚ ГЄГ ГЄГ®Г¬ ГЈГ®Г°Г®Г¤ГҐ Г­Г ГµГ®Г¤ГЁГІГ±Гї Г®ГЎГєГҐГЄГІ?",
         reply_markup=keyboard
     )
 
@@ -152,7 +153,7 @@ def process_city(call):
         keyboard.add(types.InlineKeyboardButton(value, callback_data=f"obj_{key}"))
     
     bot.edit_message_text(
-        f"? Город: {city}\n\n?? Выберите тип объекта:",
+        f"? ГѓГ®Г°Г®Г¤: {city}\n\n?? Г‚Г»ГЎГҐГ°ГЁГІГҐ ГІГЁГЇ Г®ГЎГєГҐГЄГІГ :",
         user_id,
         call.message.message_id,
         reply_markup=keyboard
@@ -171,8 +172,8 @@ def process_object_type(call):
         keyboard.add(types.InlineKeyboardButton(value, callback_data=f"work_{key}"))
     
     bot.edit_message_text(
-        f"? Тип объекта: {OBJECT_TYPES[object_type]}\n\n"
-        "?? Выберите вид работ:",
+        f"? Г’ГЁГЇ Г®ГЎГєГҐГЄГІГ : {OBJECT_TYPES[object_type]}\n\n"
+        "?? Г‚Г»ГЎГҐГ°ГЁГІГҐ ГўГЁГ¤ Г°Г ГЎГ®ГІ:",
         user_id,
         call.message.message_id,
         reply_markup=keyboard
@@ -191,8 +192,8 @@ def process_work_type(call):
         keyboard.add(types.InlineKeyboardButton(value, callback_data=f"budget_{key}"))
     
     bot.edit_message_text(
-        f"? Вид работ: {WORK_TYPES[work_type]}\n\n"
-        "?? Выберите бюджет:",
+        f"? Г‚ГЁГ¤ Г°Г ГЎГ®ГІ: {WORK_TYPES[work_type]}\n\n"
+        "?? Г‚Г»ГЎГҐГ°ГЁГІГҐ ГЎГѕГ¤Г¦ГҐГІ:",
         user_id,
         call.message.message_id,
         reply_markup=keyboard
@@ -207,9 +208,9 @@ def process_budget(call):
     user_data[user_id]['step'] = 'square'
     
     bot.edit_message_text(
-        f"? Бюджет: {BUDGET_RANGES[budget]}\n\n"
-        "?? Введите площадь помещения (в м?):\n"
-        "(или отправьте '0', если не знаете)",
+        f"? ГЃГѕГ¤Г¦ГҐГІ: {BUDGET_RANGES[budget]}\n\n"
+        "?? Г‚ГўГҐГ¤ГЁГІГҐ ГЇГ«Г®Г№Г Г¤Гј ГЇГ®Г¬ГҐГ№ГҐГ­ГЁГї (Гў Г¬?):\n"
+        "(ГЁГ«ГЁ Г®ГІГЇГ°Г ГўГјГІГҐ '0', ГҐГ±Г«ГЁ Г­ГҐ Г§Г­Г ГҐГІГҐ)",
         user_id,
         call.message.message_id
     )
@@ -226,9 +227,9 @@ def process_square(message):
         
         bot.send_message(
             user_id,
-            "?? Добавьте описание вашего проекта.\n"
-            "Укажите особенности, сроки, пожелания:\n"
-            "(или отправьте '-', чтобы пропустить)",
+            "?? Г„Г®ГЎГ ГўГјГІГҐ Г®ГЇГЁГ±Г Г­ГЁГҐ ГўГ ГёГҐГЈГ® ГЇГ°Г®ГҐГЄГІГ .\n"
+            "Г“ГЄГ Г¦ГЁГІГҐ Г®Г±Г®ГЎГҐГ­Г­Г®Г±ГІГЁ, Г±Г°Г®ГЄГЁ, ГЇГ®Г¦ГҐГ«Г Г­ГЁГї:\n"
+            "(ГЁГ«ГЁ Г®ГІГЇГ°Г ГўГјГІГҐ '-', Г·ГІГ®ГЎГ» ГЇГ°Г®ГЇГіГ±ГІГЁГІГј)",
             reply_markup=get_cancel_keyboard()
         )
         
@@ -236,21 +237,21 @@ def process_square(message):
     except ValueError:
         bot.send_message(
             user_id,
-            "? Пожалуйста, введите число.\n"
-            "?? Площадь помещения (в м?):"
+            "? ГЏГ®Г¦Г Г«ГіГ©Г±ГІГ , ГўГўГҐГ¤ГЁГІГҐ Г·ГЁГ±Г«Г®.\n"
+            "?? ГЏГ«Г®Г№Г Г¤Гј ГЇГ®Г¬ГҐГ№ГҐГ­ГЁГї (Гў Г¬?):"
         )
         bot.register_next_step_handler(message, process_square)
 
 def process_description(message):
     user_id = message.from_user.id
     
-    if message.text == '? Отменить':
+    if message.text == '? ГЋГІГ¬ГҐГ­ГЁГІГј':
         cancel_creation(message)
         return
     
     description = message.text if message.text != '-' else ""
     
-    # Сохраняем заявку в БД
+    # Г‘Г®ГµГ°Г Г­ГїГҐГ¬ Г§Г ГїГўГЄГі Гў ГЃГ„
     request_id = db.add_request(
         user_id=user_id,
         user_type=user_data[user_id]['user_type'],
@@ -264,12 +265,12 @@ def process_description(message):
     
     bot.send_message(
         user_id,
-        "? Заявка успешно создана!\n"
-        "?? Начинаем поиск подходящих вариантов...",
+        "? Г‡Г ГїГўГЄГ  ГіГ±ГЇГҐГёГ­Г® Г±Г®Г§Г¤Г Г­Г !\n"
+        "?? ГЌГ Г·ГЁГ­Г ГҐГ¬ ГЇГ®ГЁГ±ГЄ ГЇГ®Г¤ГµГ®Г¤ГїГ№ГЁГµ ГўГ Г°ГЁГ Г­ГІГ®Гў...",
         reply_markup=get_main_keyboard(user_data[user_id]['user_type'])
     )
     
-    # Запускаем поиск совпадений
+    # Г‡Г ГЇГіГ±ГЄГ ГҐГ¬ ГЇГ®ГЁГ±ГЄ Г±Г®ГўГЇГ Г¤ГҐГ­ГЁГ©
     find_matches(user_id, request_id)
     
     del user_data[user_id]
@@ -281,93 +282,93 @@ def cancel_creation(message):
     
     bot.send_message(
         user_id,
-        "? Создание заявки отменено",
+        "? Г‘Г®Г§Г¤Г Г­ГЁГҐ Г§Г ГїГўГЄГЁ Г®ГІГ¬ГҐГ­ГҐГ­Г®",
         reply_markup=get_main_keyboard(user_type)
     )
     
     if user_id in user_data:
         del user_data[user_id]
 
-# ============= АЛГОРИТМ ПОДБОРА =============
+# ============= ГЂГ‹ГѓГЋГђГ€Г’ГЊ ГЏГЋГ„ГЃГЋГђГЂ =============
 def find_matches(user_id, request_id):
-    """Находит подходящие заявки для только что созданной"""
+    """ГЌГ ГµГ®Г¤ГЁГІ ГЇГ®Г¤ГµГ®Г¤ГїГ№ГЁГҐ Г§Г ГїГўГЄГЁ Г¤Г«Гї ГІГ®Г«ГјГЄГ® Г·ГІГ® Г±Г®Г§Г¤Г Г­Г­Г®Г©"""
     
-    # Получаем целевую заявку
+    # ГЏГ®Г«ГіГ·Г ГҐГ¬ Г¶ГҐГ«ГҐГўГіГѕ Г§Г ГїГўГЄГі
     db.cursor.execute('SELECT * FROM requests WHERE request_id = ?', (request_id,))
     target_request = db.cursor.fetchone()
     
-    # Определяем, кого ищем
+    # ГЋГЇГ°ГҐГ¤ГҐГ«ГїГҐГ¬, ГЄГ®ГЈГ® ГЁГ№ГҐГ¬
     looking_for = 'owner' if target_request[2] == 'prorab' else 'prorab'
     
-    # Получаем все активные заявки противоположного типа
+    # ГЏГ®Г«ГіГ·Г ГҐГ¬ ГўГ±ГҐ Г ГЄГІГЁГўГ­Г»ГҐ Г§Г ГїГўГЄГЁ ГЇГ°Г®ГІГЁГўГ®ГЇГ®Г«Г®Г¦Г­Г®ГЈГ® ГІГЁГЇГ 
     potential_requests = db.get_active_requests(user_type=looking_for)
     
-    # Ищем совпадения
+    # Г€Г№ГҐГ¬ Г±Г®ГўГЇГ Г¤ГҐГ­ГЁГї
     matches = matcher.find_best_matches(target_request, potential_requests, limit=5)
     
-    # Сохраняем найденные совпадения
+    # Г‘Г®ГµГ°Г Г­ГїГҐГ¬ Г­Г Г©Г¤ГҐГ­Г­Г»ГҐ Г±Г®ГўГЇГ Г¤ГҐГ­ГЁГї
     for request, score in matches:
         db.save_match(request_id, request[0], score)
     
-    # Отправляем результат пользователю
+    # ГЋГІГЇГ°Г ГўГ«ГїГҐГ¬ Г°ГҐГ§ГіГ«ГјГІГ ГІ ГЇГ®Г«ГјГ§Г®ГўГ ГІГҐГ«Гѕ
     if matches:
         send_matches_to_user(user_id, request_id, matches)
     else:
         bot.send_message(
             user_id,
-            "?? Пока не найдено подходящих вариантов.\n"
-            "Мы продолжим поиск и уведомим вас, когда появятся новые заявки!"
+            "?? ГЏГ®ГЄГ  Г­ГҐ Г­Г Г©Г¤ГҐГ­Г® ГЇГ®Г¤ГµГ®Г¤ГїГ№ГЁГµ ГўГ Г°ГЁГ Г­ГІГ®Гў.\n"
+            "ГЊГ» ГЇГ°Г®Г¤Г®Г«Г¦ГЁГ¬ ГЇГ®ГЁГ±ГЄ ГЁ ГіГўГҐГ¤Г®Г¬ГЁГ¬ ГўГ Г±, ГЄГ®ГЈГ¤Г  ГЇГ®ГїГўГїГІГ±Гї Г­Г®ГўГ»ГҐ Г§Г ГїГўГЄГЁ!"
         )
 
 def send_matches_to_user(user_id, request_id, matches):
-    """Отправляет найденные совпадения пользователю"""
+    """ГЋГІГЇГ°Г ГўГ«ГїГҐГІ Г­Г Г©Г¤ГҐГ­Г­Г»ГҐ Г±Г®ГўГЇГ Г¤ГҐГ­ГЁГї ГЇГ®Г«ГјГ§Г®ГўГ ГІГҐГ«Гѕ"""
     
-    text = f"?? Найдено {len(matches)} подходящих вариантов!\n\n"
+    text = f"?? ГЌГ Г©Г¤ГҐГ­Г® {len(matches)} ГЇГ®Г¤ГµГ®Г¤ГїГ№ГЁГµ ГўГ Г°ГЁГ Г­ГІГ®Гў!\n\n"
     
     for i, (request, score) in enumerate(matches, 1):
-        text += f"?? Вариант #{i}\n"
-        text += f"?? Совпадение: {score}%\n"
+        text += f"?? Г‚Г Г°ГЁГ Г­ГІ #{i}\n"
+        text += f"?? Г‘Г®ГўГЇГ Г¤ГҐГ­ГЁГҐ: {score}%\n"
         
         if request[2] == 'owner':
-            text += f"?? Собственник ищет: {OBJECT_TYPES.get(request[4], 'Не указано')}\n"
+            text += f"?? Г‘Г®ГЎГ±ГІГўГҐГ­Г­ГЁГЄ ГЁГ№ГҐГІ: {OBJECT_TYPES.get(request[4], 'ГЌГҐ ГіГЄГ Г§Г Г­Г®')}\n"
         else:
-            text += f"?? Прораб: {WORK_TYPES.get(request[5], 'Не указано')}\n"
+            text += f"?? ГЏГ°Г®Г°Г ГЎ: {WORK_TYPES.get(request[5], 'ГЌГҐ ГіГЄГ Г§Г Г­Г®')}\n"
         
-        text += f"?? Город: {request[3]}\n"
-        text += f"?? Бюджет: {BUDGET_RANGES.get(request[6], 'Не указано')}\n"
+        text += f"?? ГѓГ®Г°Г®Г¤: {request[3]}\n"
+        text += f"?? ГЃГѕГ¤Г¦ГҐГІ: {BUDGET_RANGES.get(request[6], 'ГЌГҐ ГіГЄГ Г§Г Г­Г®')}\n"
         
-        if request[7]:  # площадь
-            text += f"?? Площадь: {request[7]} м?\n"
+        if request[7]:  # ГЇГ«Г®Г№Г Г¤Гј
+            text += f"?? ГЏГ«Г®Г№Г Г¤Гј: {request[7]} Г¬?\n"
         
         text += "\n"
     
-    text += "Для просмотра деталей используйте раздел 'Мои заявки'"
+    text += "Г„Г«Гї ГЇГ°Г®Г±Г¬Г®ГІГ°Г  Г¤ГҐГІГ Г«ГҐГ© ГЁГ±ГЇГ®Г«ГјГ§ГіГ©ГІГҐ Г°Г Г§Г¤ГҐГ« 'ГЊГ®ГЁ Г§Г ГїГўГЄГЁ'"
     
     bot.send_message(user_id, text)
 
-# ============= ПОИСК ЗАЯВОК =============
-@bot.message_handler(func=lambda message: message.text in ['?? Найти заказы', '?? Найти бригады'])
+# ============= ГЏГЋГ€Г‘ГЉ Г‡ГЂГџГ‚ГЋГЉ =============
+@bot.message_handler(func=lambda message: message.text in ['?? ГЌГ Г©ГІГЁ Г§Г ГЄГ Г§Г»', '?? ГЌГ Г©ГІГЁ ГЎГ°ГЁГЈГ Г¤Г»'])
 def search_requests(message):
     user_id = message.from_user.id
     
     user_requests = db.get_user_requests(user_id)
     if not user_requests:
-        bot.send_message(user_id, "Сначала создайте заявку!")
+        bot.send_message(user_id, "Г‘Г­Г Г·Г Г«Г  Г±Г®Г§Г¤Г Г©ГІГҐ Г§Г ГїГўГЄГі!")
         return
     
-    # Получаем последнюю активную заявку пользователя
+    # ГЏГ®Г«ГіГ·Г ГҐГ¬ ГЇГ®Г±Г«ГҐГ¤Г­ГѕГѕ Г ГЄГІГЁГўГ­ГіГѕ Г§Г ГїГўГЄГі ГЇГ®Г«ГјГ§Г®ГўГ ГІГҐГ«Гї
     active_requests = [r for r in user_requests if r[9] == 'active']
     
     if not active_requests:
         bot.send_message(
             user_id,
-            "У вас нет активных заявок. Создайте новую заявку для поиска!"
+            "Г“ ГўГ Г± Г­ГҐГІ Г ГЄГІГЁГўГ­Г»Гµ Г§Г ГїГўГ®ГЄ. Г‘Г®Г§Г¤Г Г©ГІГҐ Г­Г®ГўГіГѕ Г§Г ГїГўГЄГі Г¤Г«Гї ГЇГ®ГЁГ±ГЄГ !"
         )
         return
     
     last_request = active_requests[0]
     
-    # Получаем сохраненные совпадения
+    # ГЏГ®Г«ГіГ·Г ГҐГ¬ Г±Г®ГµГ°Г Г­ГҐГ­Г­Г»ГҐ Г±Г®ГўГЇГ Г¤ГҐГ­ГЁГї
     matches = db.get_matches_for_request(last_request[0])
     
     if matches:
@@ -375,56 +376,56 @@ def search_requests(message):
     else:
         bot.send_message(
             user_id,
-            "? Пока нет новых совпадений.\n"
-            "Мы уведомим вас, когда появятся подходящие варианты!"
+            "? ГЏГ®ГЄГ  Г­ГҐГІ Г­Г®ГўГ»Гµ Г±Г®ГўГЇГ Г¤ГҐГ­ГЁГ©.\n"
+            "ГЊГ» ГіГўГҐГ¤Г®Г¬ГЁГ¬ ГўГ Г±, ГЄГ®ГЈГ¤Г  ГЇГ®ГїГўГїГІГ±Гї ГЇГ®Г¤ГµГ®Г¤ГїГ№ГЁГҐ ГўГ Г°ГЁГ Г­ГІГ»!"
         )
 
 def send_matches_from_db(user_id, matches):
-    """Отправляет пользователю совпадения из базы данных"""
+    """ГЋГІГЇГ°Г ГўГ«ГїГҐГІ ГЇГ®Г«ГјГ§Г®ГўГ ГІГҐГ«Гѕ Г±Г®ГўГЇГ Г¤ГҐГ­ГЁГї ГЁГ§ ГЎГ Г§Г» Г¤Г Г­Г­Г»Гµ"""
     
-    for match in matches[:3]:  # Показываем по 3 за раз
-        match_data = match[4:]  # Данные заявки
-        score = match[3]  # Процент совпадения
+    for match in matches[:3]:  # ГЏГ®ГЄГ Г§Г»ГўГ ГҐГ¬ ГЇГ® 3 Г§Г  Г°Г Г§
+        match_data = match[4:]  # Г„Г Г­Г­Г»ГҐ Г§Г ГїГўГЄГЁ
+        score = match[3]  # ГЏГ°Г®Г¶ГҐГ­ГІ Г±Г®ГўГЇГ Г¤ГҐГ­ГЁГї
         
-        # Создаем карточку заявки
-        if match_data[2] == 'owner':  # это заявка собственника
-            text = f"?? **ЗАКАЗЧИК**\n"
-            text += f"?? Совпадение: {score}%\n"
-            text += f"?? Город: {match_data[3]}\n"
-            text += f"?? Объект: {OBJECT_TYPES.get(match_data[4], 'Не указано')}\n"
-            text += f"?? Работы: {WORK_TYPES.get(match_data[5], 'Не указано')}\n"
-            text += f"?? Бюджет: {BUDGET_RANGES.get(match_data[6], 'Не указано')}\n"
+        # Г‘Г®Г§Г¤Г ГҐГ¬ ГЄГ Г°ГІГ®Г·ГЄГі Г§Г ГїГўГЄГЁ
+        if match_data[2] == 'owner':  # ГЅГІГ® Г§Г ГїГўГЄГ  Г±Г®ГЎГ±ГІГўГҐГ­Г­ГЁГЄГ 
+            text = f"?? **Г‡ГЂГЉГЂГ‡Г—Г€ГЉ**\n"
+            text += f"?? Г‘Г®ГўГЇГ Г¤ГҐГ­ГЁГҐ: {score}%\n"
+            text += f"?? ГѓГ®Г°Г®Г¤: {match_data[3]}\n"
+            text += f"?? ГЋГЎГєГҐГЄГІ: {OBJECT_TYPES.get(match_data[4], 'ГЌГҐ ГіГЄГ Г§Г Г­Г®')}\n"
+            text += f"?? ГђГ ГЎГ®ГІГ»: {WORK_TYPES.get(match_data[5], 'ГЌГҐ ГіГЄГ Г§Г Г­Г®')}\n"
+            text += f"?? ГЃГѕГ¤Г¦ГҐГІ: {BUDGET_RANGES.get(match_data[6], 'ГЌГҐ ГіГЄГ Г§Г Г­Г®')}\n"
             
             if match_data[7]:
-                text += f"?? Площадь: {match_data[7]} м?\n"
+                text += f"?? ГЏГ«Г®Г№Г Г¤Гј: {match_data[7]} Г¬?\n"
             
             if match_data[8]:
-                text += f"?? Описание: {match_data[8][:200]}...\n"
+                text += f"?? ГЋГЇГЁГ±Г Г­ГЁГҐ: {match_data[8][:200]}...\n"
             
-        else:  # заявка прораба
-            text = f"?? **ПРОРАБ**\n"
-            text += f"?? Совпадение: {score}%\n"
-            text += f"?? Город: {match_data[3]}\n"
-            text += f"?? Специализация: {WORK_TYPES.get(match_data[5], 'Не указано')}\n"
-            text += f"?? Бюджет: {BUDGET_RANGES.get(match_data[6], 'Не указано')}\n"
+        else:  # Г§Г ГїГўГЄГ  ГЇГ°Г®Г°Г ГЎГ 
+            text = f"?? **ГЏГђГЋГђГЂГЃ**\n"
+            text += f"?? Г‘Г®ГўГЇГ Г¤ГҐГ­ГЁГҐ: {score}%\n"
+            text += f"?? ГѓГ®Г°Г®Г¤: {match_data[3]}\n"
+            text += f"?? Г‘ГЇГҐГ¶ГЁГ Г«ГЁГ§Г Г¶ГЁГї: {WORK_TYPES.get(match_data[5], 'ГЌГҐ ГіГЄГ Г§Г Г­Г®')}\n"
+            text += f"?? ГЃГѕГ¤Г¦ГҐГІ: {BUDGET_RANGES.get(match_data[6], 'ГЌГҐ ГіГЄГ Г§Г Г­Г®')}\n"
             
             if match_data[7]:
-                text += f"?? Площадь: {match_data[7]} м?\n"
+                text += f"?? ГЏГ«Г®Г№Г Г¤Гј: {match_data[7]} Г¬?\n"
             
             if match_data[8]:
-                text += f"?? Описание: {match_data[8][:200]}...\n"
+                text += f"?? ГЋГЇГЁГ±Г Г­ГЁГҐ: {match_data[8][:200]}...\n"
         
-        # Кнопки для взаимодействия
+        # ГЉГ­Г®ГЇГЄГЁ Г¤Г«Гї ГўГ§Г ГЁГ¬Г®Г¤ГҐГ©Г±ГІГўГЁГї
         keyboard = types.InlineKeyboardMarkup()
         keyboard.add(
             types.InlineKeyboardButton(
-                "?? Показать контакты",
+                "?? ГЏГ®ГЄГ Г§Г ГІГј ГЄГ®Г­ГІГ ГЄГІГ»",
                 callback_data=f"show_contact_{match_data[1]}"  # user_id
             )
         )
         keyboard.add(
             types.InlineKeyboardButton(
-                "? Откликнуться",
+                "? ГЋГІГЄГ«ГЁГЄГ­ГіГІГјГ±Гї",
                 callback_data=f"respond_{match[0]}"  # match_id
             )
         )
@@ -436,14 +437,14 @@ def send_matches_from_db(user_id, matches):
 def show_contact(call):
     user_id = int(call.data.replace('show_contact_', ''))
     
-    # Получаем данные пользователя
+    # ГЏГ®Г«ГіГ·Г ГҐГ¬ Г¤Г Г­Г­Г»ГҐ ГЇГ®Г«ГјГ§Г®ГўГ ГІГҐГ«Гї
     db.cursor.execute('SELECT * FROM users WHERE user_id = ?', (user_id,))
     user = db.cursor.fetchone()
     
     if user and user[4]:  # phone
-        contact_text = f"?? Контактный телефон: {user[4]}"
+        contact_text = f"?? ГЉГ®Г­ГІГ ГЄГІГ­Г»Г© ГІГҐГ«ГҐГґГ®Г­: {user[4]}"
     else:
-        contact_text = "?? Пользователь не указал контактный телефон"
+        contact_text = "?? ГЏГ®Г«ГјГ§Г®ГўГ ГІГҐГ«Гј Г­ГҐ ГіГЄГ Г§Г Г« ГЄГ®Г­ГІГ ГЄГІГ­Г»Г© ГІГҐГ«ГҐГґГ®Г­"
     
     bot.answer_callback_query(call.id)
     bot.send_message(call.from_user.id, contact_text)
@@ -452,7 +453,7 @@ def show_contact(call):
 def respond_to_match(call):
     match_id = int(call.data.replace('respond_', ''))
     
-    # Получаем информацию о совпадении
+    # ГЏГ®Г«ГіГ·Г ГҐГ¬ ГЁГ­ГґГ®Г°Г¬Г Г¶ГЁГѕ Г® Г±Г®ГўГЇГ Г¤ГҐГ­ГЁГЁ
     db.cursor.execute('''
         SELECT m.*, r1.user_id as target_user, r2.user_id as matched_user 
         FROM matches m
@@ -464,24 +465,24 @@ def respond_to_match(call):
     match = db.cursor.fetchone()
     
     if match:
-        bot.answer_callback_query(call.id, "? Отклик отправлен!")
+        bot.answer_callback_query(call.id, "? ГЋГІГЄГ«ГЁГЄ Г®ГІГЇГ°Г ГўГ«ГҐГ­!")
         
-        # Отправляем уведомление другой стороне
+        # ГЋГІГЇГ°Г ГўГ«ГїГҐГ¬ ГіГўГҐГ¤Г®Г¬Г«ГҐГ­ГЁГҐ Г¤Г°ГіГЈГ®Г© Г±ГІГ®Г°Г®Г­ГҐ
         bot.send_message(
             match[5],  # matched_user
-            "?? Новый отклик на вашу заявку!\n"
-            "Кто-то заинтересовался вашим предложением."
+            "?? ГЌГ®ГўГ»Г© Г®ГІГЄГ«ГЁГЄ Г­Г  ГўГ ГёГі Г§Г ГїГўГЄГі!\n"
+            "ГЉГІГ®-ГІГ® Г§Г ГЁГ­ГІГҐГ°ГҐГ±Г®ГўГ Г«Г±Гї ГўГ ГёГЁГ¬ ГЇГ°ГҐГ¤Г«Г®Г¦ГҐГ­ГЁГҐГ¬."
         )
         
         bot.send_message(
             call.from_user.id,
-            "? Ваш отклик отправлен. Ожидайте ответа!"
+            "? Г‚Г Гё Г®ГІГЄГ«ГЁГЄ Г®ГІГЇГ°Г ГўГ«ГҐГ­. ГЋГ¦ГЁГ¤Г Г©ГІГҐ Г®ГІГўГҐГІГ !"
         )
     else:
-        bot.answer_callback_query(call.id, "? Ошибка")
+        bot.answer_callback_query(call.id, "? ГЋГёГЁГЎГЄГ ")
 
-# ============= ПРОФИЛЬ И ЗАЯВКИ =============
-@bot.message_handler(func=lambda message: message.text == '?? Мои заявки')
+# ============= ГЏГђГЋГ”Г€Г‹Гњ Г€ Г‡ГЂГџГ‚ГЉГ€ =============
+@bot.message_handler(func=lambda message: message.text == '?? ГЊГ®ГЁ Г§Г ГїГўГЄГЁ')
 def show_my_requests(message):
     user_id = message.from_user.id
     
@@ -490,30 +491,30 @@ def show_my_requests(message):
     if not requests:
         bot.send_message(
             user_id,
-            "У вас еще нет заявок.\n"
-            "Создайте первую заявку через главное меню!"
+            "Г“ ГўГ Г± ГҐГ№ГҐ Г­ГҐГІ Г§Г ГїГўГ®ГЄ.\n"
+            "Г‘Г®Г§Г¤Г Г©ГІГҐ ГЇГҐГ°ГўГіГѕ Г§Г ГїГўГЄГі Г·ГҐГ°ГҐГ§ ГЈГ«Г ГўГ­Г®ГҐ Г¬ГҐГ­Гѕ!"
         )
         return
     
-    text = "?? **Ваши заявки:**\n\n"
+    text = "?? **Г‚Г ГёГЁ Г§Г ГїГўГЄГЁ:**\n\n"
     
-    for i, req in enumerate(requests[:5], 1):  # Показываем последние 5
-        status = "?? Активна" if req[9] == 'active' else "?? Закрыта"
+    for i, req in enumerate(requests[:5], 1):  # ГЏГ®ГЄГ Г§Г»ГўГ ГҐГ¬ ГЇГ®Г±Г«ГҐГ¤Г­ГЁГҐ 5
+        status = "?? ГЂГЄГІГЁГўГ­Г " if req[9] == 'active' else "?? Г‡Г ГЄГ°Г»ГІГ "
         
         if req[2] == 'owner':
-            text += f"{i}. {status} - Ищу бригаду\n"
-            text += f"   Объект: {OBJECT_TYPES.get(req[4], 'Не указано')}\n"
+            text += f"{i}. {status} - Г€Г№Гі ГЎГ°ГЁГЈГ Г¤Гі\n"
+            text += f"   ГЋГЎГєГҐГЄГІ: {OBJECT_TYPES.get(req[4], 'ГЌГҐ ГіГЄГ Г§Г Г­Г®')}\n"
         else:
-            text += f"{i}. {status} - Ищу заказ\n"
-            text += f"   Работы: {WORK_TYPES.get(req[5], 'Не указано')}\n"
+            text += f"{i}. {status} - Г€Г№Гі Г§Г ГЄГ Г§\n"
+            text += f"   ГђГ ГЎГ®ГІГ»: {WORK_TYPES.get(req[5], 'ГЌГҐ ГіГЄГ Г§Г Г­Г®')}\n"
         
-        text += f"   Город: {req[3]}\n"
-        text += f"   Дата: {req[10][:10]}\n\n"
+        text += f"   ГѓГ®Г°Г®Г¤: {req[3]}\n"
+        text += f"   Г„Г ГІГ : {req[10][:10]}\n\n"
     
     keyboard = types.InlineKeyboardMarkup()
     keyboard.add(
         types.InlineKeyboardButton(
-            "? Закрыть последнюю заявку",
+            "? Г‡Г ГЄГ°Г»ГІГј ГЇГ®Г±Г«ГҐГ¤Г­ГѕГѕ Г§Г ГїГўГЄГі",
             callback_data="close_last_request"
         )
     )
@@ -529,12 +530,12 @@ def close_last_request(call):
     
     if active_requests:
         db.close_request(active_requests[0][0])
-        bot.answer_callback_query(call.id, "? Заявка закрыта!")
-        bot.send_message(user_id, "? Последняя заявка закрыта")
+        bot.answer_callback_query(call.id, "? Г‡Г ГїГўГЄГ  Г§Г ГЄГ°Г»ГІГ !")
+        bot.send_message(user_id, "? ГЏГ®Г±Г«ГҐГ¤Г­ГїГї Г§Г ГїГўГЄГ  Г§Г ГЄГ°Г»ГІГ ")
     else:
-        bot.answer_callback_query(call.id, "? Нет активных заявок")
+        bot.answer_callback_query(call.id, "? ГЌГҐГІ Г ГЄГІГЁГўГ­Г»Гµ Г§Г ГїГўГ®ГЄ")
 
-@bot.message_handler(func=lambda message: message.text == '?? Профиль')
+@bot.message_handler(func=lambda message: message.text == '?? ГЏГ°Г®ГґГЁГ«Гј')
 def show_profile(message):
     user_id = message.from_user.id
     
@@ -542,32 +543,32 @@ def show_profile(message):
     user = db.cursor.fetchone()
     
     if user:
-        text = f"?? **Ваш профиль**\n\n"
-        text += f"Имя: {user[3]}\n"
-        text += f"Username: @{user[2] if user[2] else 'не указан'}\n"
-        text += f"Роль: {USER_TYPES.get(user[4], 'Не указана')}\n"
-        text += f"Телефон: {user[5] if user[5] else 'не указан'}\n"
-        text += f"Дата регистрации: {user[6][:10]}\n"
+        text = f"?? **Г‚Г Гё ГЇГ°Г®ГґГЁГ«Гј**\n\n"
+        text += f"Г€Г¬Гї: {user[3]}\n"
+        text += f"Username: @{user[2] if user[2] else 'Г­ГҐ ГіГЄГ Г§Г Г­'}\n"
+        text += f"ГђГ®Г«Гј: {USER_TYPES.get(user[4], 'ГЌГҐ ГіГЄГ Г§Г Г­Г ')}\n"
+        text += f"Г’ГҐГ«ГҐГґГ®Г­: {user[5] if user[5] else 'Г­ГҐ ГіГЄГ Г§Г Г­'}\n"
+        text += f"Г„Г ГІГ  Г°ГҐГЈГЁГ±ГІГ°Г Г¶ГЁГЁ: {user[6][:10]}\n"
         
-        # Получаем статистику
+        # ГЏГ®Г«ГіГ·Г ГҐГ¬ Г±ГІГ ГІГЁГ±ГІГЁГЄГі
         requests = db.get_user_requests(user_id)
         active_requests = len([r for r in requests if r[9] == 'active'])
         
-        text += f"\n?? Статистика:\n"
-        text += f"Всего заявок: {len(requests)}\n"
-        text += f"Активных: {active_requests}\n"
+        text += f"\n?? Г‘ГІГ ГІГЁГ±ГІГЁГЄГ :\n"
+        text += f"Г‚Г±ГҐГЈГ® Г§Г ГїГўГ®ГЄ: {len(requests)}\n"
+        text += f"ГЂГЄГІГЁГўГ­Г»Гµ: {active_requests}\n"
         
         keyboard = types.InlineKeyboardMarkup()
         keyboard.add(
             types.InlineKeyboardButton(
-                "?? Указать телефон",
+                "?? Г“ГЄГ Г§Г ГІГј ГІГҐГ«ГҐГґГ®Г­",
                 callback_data="set_phone"
             )
         )
         
         bot.send_message(user_id, text, reply_markup=keyboard, parse_mode='Markdown')
     else:
-        bot.send_message(user_id, "Сначала зарегистрируйтесь!")
+        bot.send_message(user_id, "Г‘Г­Г Г·Г Г«Г  Г§Г Г°ГҐГЈГЁГ±ГІГ°ГЁГ°ГіГ©ГІГҐГ±Гј!")
 
 @bot.callback_query_handler(func=lambda call: call.data == 'set_phone')
 def set_phone_start(call):
@@ -576,7 +577,7 @@ def set_phone_start(call):
     bot.answer_callback_query(call.id)
     bot.send_message(
         user_id,
-        "?? Отправьте ваш номер телефона для связи:",
+        "?? ГЋГІГЇГ°Г ГўГјГІГҐ ГўГ Гё Г­Г®Г¬ГҐГ° ГІГҐГ«ГҐГґГ®Г­Г  Г¤Г«Гї Г±ГўГїГ§ГЁ:",
         reply_markup=get_cancel_keyboard()
     )
     
@@ -585,4 +586,5 @@ def set_phone_start(call):
 def save_phone(message):
     user_id = message.from_user.id
     
+
     if message.text
