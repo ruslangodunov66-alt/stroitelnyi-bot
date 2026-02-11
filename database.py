@@ -1,5 +1,4 @@
 import sqlite3
-import json
 from datetime import datetime
 
 class Database:
@@ -9,7 +8,7 @@ class Database:
         self.create_tables()
     
     def create_tables(self):
-        # Таблица пользователей
+        # РўР°Р±Р»РёС†Р° РїРѕР»СЊР·РѕРІР°С‚РµР»РµР№
         self.cursor.execute('''
             CREATE TABLE IF NOT EXISTS users (
                 user_id INTEGER PRIMARY KEY,
@@ -21,7 +20,7 @@ class Database:
             )
         ''')
         
-        # Таблица заявок
+        # РўР°Р±Р»РёС†Р° Р·Р°СЏРІРѕРє
         self.cursor.execute('''
             CREATE TABLE IF NOT EXISTS requests (
                 request_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -34,12 +33,11 @@ class Database:
                 square_meters INTEGER,
                 description TEXT,
                 status TEXT DEFAULT 'active',
-                created_date TEXT,
-                FOREIGN KEY (user_id) REFERENCES users (user_id)
+                created_date TEXT
             )
         ''')
         
-        # Таблица совпадений (подобранные варианты)
+        # РўР°Р±Р»РёС†Р° СЃРѕРІРїР°РґРµРЅРёР№
         self.cursor.execute('''
             CREATE TABLE IF NOT EXISTS matches (
                 match_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -47,9 +45,7 @@ class Database:
                 matched_request_id INTEGER,
                 match_score REAL,
                 viewed BOOLEAN DEFAULT 0,
-                created_date TEXT,
-                FOREIGN KEY (request_id) REFERENCES requests (request_id),
-                FOREIGN KEY (matched_request_id) REFERENCES requests (request_id)
+                created_date TEXT
             )
         ''')
         
@@ -76,15 +72,15 @@ class Database:
         self.conn.commit()
         return self.cursor.lastrowid
     
+    def get_user_requests(self, user_id):
+        self.cursor.execute('SELECT * FROM requests WHERE user_id = ? ORDER BY created_date DESC', (user_id,))
+        return self.cursor.fetchall()
+    
     def get_active_requests(self, user_type=None):
         query = 'SELECT * FROM requests WHERE status = "active"'
         if user_type:
             query += f' AND user_type = "{user_type}"'
         self.cursor.execute(query)
-        return self.cursor.fetchall()
-    
-    def get_user_requests(self, user_id):
-        self.cursor.execute('SELECT * FROM requests WHERE user_id = ? ORDER BY created_date DESC', (user_id,))
         return self.cursor.fetchall()
     
     def save_match(self, request_id, matched_request_id, match_score):
